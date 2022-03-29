@@ -139,8 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         brightness: Brightness.light);
-    return MaterialApp(
-        home: Scaffold(
+    return  Scaffold(
             backgroundColor: Colors.white,
             appBar: appBar,
             body: FutureBuilder(
@@ -246,7 +245,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       );
                     }
                   }
-                })));
+                }));
   }
 
   Widget _buildBottomDrawer(BuildContext context) {
