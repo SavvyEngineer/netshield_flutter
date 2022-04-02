@@ -21,11 +21,12 @@ class SecureLs {
     }
   }
 
-  fetchDataFromLs(String key) async {
+  Future<String> fetchDataFromLs(String key) async {
     await getLsData();
     if (allValues.isNotEmpty) {
-      return await storage.read(key: key, iOptions: options);
+      return await storage.read(key: key, iOptions: options).toString();
     }
+    return '';
   }
 
   isUserLoggedIn(BuildContext context) async {

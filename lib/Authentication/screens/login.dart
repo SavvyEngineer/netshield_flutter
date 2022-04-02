@@ -2,14 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
   _loginFunc(BuildContext context, String userName, String password) async {
     Provider.of<AuthProvider>(context, listen: false)
-        .loginUser(context,userName, password);
+        .loginUser(context, userName, password);
   }
 
-  late String _userName;
-  late String _password;
+  final email_txt_controller = TextEditingController();
+
+  final password_txt_controller = TextEditingController();
+
+  @override
+  void dispose() {
+    email_txt_controller.dispose();
+    password_txt_controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +60,7 @@ class Login extends StatelessWidget {
           height: 16,
         ),
         TextField(
-          onChanged: (value) {
-            _userName = value;
-          },
+          controller: email_txt_controller,
           decoration: InputDecoration(
             hintText: 'Email',
             hintStyle: TextStyle(
@@ -73,9 +84,7 @@ class Login extends StatelessWidget {
           height: 16,
         ),
         TextField(
-          onChanged: (value) {
-            _password = value;
-          },
+          controller :password_txt_controller,
           decoration: InputDecoration(
             hintText: 'Password',
             hintStyle: TextStyle(
@@ -98,29 +107,29 @@ class Login extends StatelessWidget {
         SizedBox(
           height: 24,
         ),
-        Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: Color(0xFF1C1C1C),
-            borderRadius: BorderRadius.all(
-              Radius.circular(25),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xFF1C1C1C).withOpacity(0.2),
-                spreadRadius: 3,
-                blurRadius: 4,
-                offset: Offset(0, 3),
+        GestureDetector(
+          onTap: () {
+          
+              _loginFunc(context, email_txt_controller.text, password_txt_controller.text);
+            
+          },
+          child: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: Color(0xFF1C1C1C),
+              borderRadius: BorderRadius.all(
+                Radius.circular(25),
               ),
-            ],
-          ),
-          child: Center(
-            child: GestureDetector(
-              onTap: () {
-                if (_userName!= ''&&_password!='') {
-                _loginFunc(context, _userName, _password);
-                }
-              },
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xFF1C1C1C).withOpacity(0.2),
+                  spreadRadius: 3,
+                  blurRadius: 4,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
               child: Text(
                 "LOGIN",
                 style: TextStyle(

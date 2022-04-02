@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
+import 'package:netshield/Authentication/screens/email_verification_screen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
 import 'package:provider/provider.dart';
 
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         home: HomePage(),
         routes: {
           MyHomePage.routeName: (context) => MyHomePage(),
+          EmailVerificationScreen.routeName:(context)=>EmailVerificationScreen()
         },
       ),
     );
@@ -45,12 +47,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
+
   @override
   void initState() {
     super.initState();
     SecureLs secureLs = new SecureLs();
-    secureLs.isUserLoggedIn(context);
+  //  secureLs.isUserLoggedIn(context);
   }
 
   bool login = true;
