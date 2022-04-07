@@ -5,9 +5,12 @@ import 'package:bottom_drawer/bottom_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:netshield/Authentication/provider/auth_provider.dart';
+import 'package:netshield/Secure/secure_storage.dart';
 import 'package:netshield/theme.dart';
 import 'package:netshield/widgets/colorized_text.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:rolling_switch/rolling_switch.dart';
 import 'package:vibration/vibration.dart';
 
@@ -26,16 +29,49 @@ class _MyHomePageState extends State<MyHomePage> {
   late bool swBtnState = false;
   String serverCert = '';
   late Future _open_vpn_initilze_future;
+  Map userData = {};
+  bool _is_init = true;
 
   @override
-  void initState() {
-    super.initState();
-    _open_vpn_initilze_future = loadAsset();
+  void didChangeDependencies() {
+    if (_is_init) {
+      _open_vpn_initilze_future = loadAsset();
+    }
+    _is_init = false;
+    super.didChangeDependencies();
   }
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _open_vpn_initilze_future = loadAsset();
+  // }
+
   Future<void> loadAsset() async {
-    String config = await rootBundle.loadString('assets/vpn_config.txt');
-    serverCert = config;
+    SecureLs secureLs = new SecureLs();
+    await secureLs.getLsData().then((value) {
+      userData = value;
+      userData.forEach((key, value) {
+        print('$key==$value');
+      });
+    });
+
+    if (userData['ovpn-url'] == null) {
+      Provider.of<AuthProvider>(context, listen: false)
+          .getAccountData(userData['token']);
+    } else {
+      await Provider.of<AuthProvider>(context, listen: false)
+          .getServerConfig(userData['ovpn-url'])
+          .then((value) {
+        if (userData['ovpn-config'] == null) {
+          userData['ovpn-config'] = value;
+        } else {
+          serverCert = userData['ovpn-config'];
+        }
+      });
+    }
+    setState(() {});
+    //String config = await rootBundle.loadString('assets/vpn_config.txt');
     openvpn = await OpenVPN(
         onVpnStatusChanged: _onVpnStatusChanged,
         onVpnStageChanged: _onVpnStageChanged);
@@ -72,15 +108,18 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _startVpn() async {
-    await loadAsset();
+    if (serverCert == '') {
+      await loadAsset();
+    }
+    print(serverCert);
     openvpn.connect(serverCert, 'netshield',
         bypassPackages: [], certIsRequired: true);
-    Vibration.vibrate(duration: 1000);
+    Vibration.vibrate(duration: 150);
   }
 
   _stopVpn() {
     openvpn.disconnect();
-    Vibration.vibrate(duration: 1000);
+    Vibration.vibrate(duration: 150);
   }
 
   String _vpnStage(String vpnCurrentStage) {
@@ -139,113 +178,114 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         brightness: Brightness.light);
-    return  Scaffold(
-            backgroundColor: Colors.white,
-            appBar: appBar,
-            body: FutureBuilder(
-                future: _open_vpn_initilze_future,
-                builder: (context, dataSnapShot) {
-                  if (dataSnapShot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else {
-                    if (dataSnapShot.error != null) {
-                      return Center(
-                        child: Text('An error occured error=${dataSnapShot.error.toString()}'),
-                      );
-                    } else {
-                      return Stack(
-                        children: [
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  height: mediaQuery.size.height * .08,
-                                ),
-                                ColorizedText(),
-                                SizedBox(
-                                  height: mediaQuery.size.height * .02,
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 30.0),
-                                  child: Material(
-                                    elevation: 20,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(50)),
-                                    child: RollingSwitch.widget(
-                                      initialState: swBtnState,
-                                      width: mediaQuery.size.width / 2,
-                                      height: (mediaQuery.size.height -
-                                              appBar.preferredSize.height -
-                                              mediaQuery.padding.top) /
-                                          9,
-                                      innerSize: (mediaQuery.size.height -
-                                              appBar.preferredSize.height -
-                                              mediaQuery.padding.top) /
-                                          9.9,
-                                      onChanged: (bool state) {
-                                        if (state) {
-                                          _startVpn();
-                                        } else {
-                                          _stopVpn();
-                                        }
-                                      },
-                                      rollingInfoRight: RollingWidgetInfo(
-                                        backgroundColor: Color(0xff9CE883),
-                                        icon: Image.asset(
-                                          "assets/image/mLogo_active.png",
-                                        ),
-                                        //  text: Text('Flutter')
+    return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: appBar,
+        body: FutureBuilder(
+            future: _open_vpn_initilze_future,
+            builder: (context, dataSnapShot) {
+              if (dataSnapShot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                if (dataSnapShot.error != null) {
+                  return Center(
+                    child: Text(
+                        'An error occured error=${dataSnapShot.error.toString()}'),
+                  );
+                } else {
+                  return Stack(
+                    children: [
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: mediaQuery.size.height * .08,
+                            ),
+                            ColorizedText(),
+                            SizedBox(
+                              height: mediaQuery.size.height * .02,
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(top: 30.0),
+                              child: Material(
+                                elevation: 20,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(50)),
+                                child: RollingSwitch.widget(
+                                  initialState: swBtnState,
+                                  width: mediaQuery.size.width / 2,
+                                  height: (mediaQuery.size.height -
+                                          appBar.preferredSize.height -
+                                          mediaQuery.padding.top) /
+                                      9,
+                                  innerSize: (mediaQuery.size.height -
+                                          appBar.preferredSize.height -
+                                          mediaQuery.padding.top) /
+                                      9.9,
+                                  onChanged: (bool state) {
+                                    if (state) {
+                                      _startVpn();
+                                    } else {
+                                      _stopVpn();
+                                    }
+                                  },
+                                  rollingInfoRight: RollingWidgetInfo(
+                                    backgroundColor: Color(0xff9CE883),
+                                    icon: Image.asset(
+                                      "assets/image/mLogo_active.png",
+                                    ),
+                                    //  text: Text('Flutter')
+                                  ),
+                                  rollingInfoLeft: RollingWidgetInfo(
+                                      icon: Image.asset(
+                                        "assets/image/mLogo_deactive.png",
                                       ),
-                                      rollingInfoLeft: RollingWidgetInfo(
-                                          icon: Image.asset(
-                                            "assets/image/mLogo_deactive.png",
-                                          ),
-                                          backgroundColor: Color(0xffE6F4F1)
-                                          // text: Text('Stacked'),
-                                          ),
+                                      backgroundColor: Color(0xffE6F4F1)
+                                      // text: Text('Stacked'),
+                                      ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: mediaQuery.size.width / 1.7,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    margin:
+                                        EdgeInsets.only(top: 30, bottom: 30),
+                                    child: Text(
+                                      _vpnStage(stage),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontFamily: 'Ubuntu',
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ),
-                                ),
-                                SizedBox(
-                                  width: mediaQuery.size.width / 1.7,
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(
-                                            top: 30, bottom: 30),
-                                        child: Text(
-                                          _vpnStage(stage),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontFamily: 'Ubuntu',
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                      Text(
-                                        _vpnStage(stage) == 'connected'
-                                            ? 'you will never be bothered again by ads'
-                                            : 'you are going to see ads because your not connected',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                            fontFamily: 'Ubuntu', fontSize: 18),
-                                      )
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                          _buildBottomDrawer(context),
-                        ],
-                      );
-                    }
-                  }
-                }));
+                                  Text(
+                                    _vpnStage(stage) == 'connected'
+                                        ? 'you will never be bothered again by ads'
+                                        : 'you are going to see ads because your not connected',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontFamily: 'Ubuntu', fontSize: 18),
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      _buildBottomDrawer(context),
+                    ],
+                  );
+                }
+              }
+            }));
   }
 
   Widget _buildBottomDrawer(BuildContext context) {

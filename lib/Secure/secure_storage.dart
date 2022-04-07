@@ -21,6 +21,11 @@ class SecureLs {
     }
   }
 
+    Future<void> writeSingleKeyLs(String key,String value) async {
+    await getLsData();
+    await storage.write(key: key.toString(), value: value.toString());
+  }
+
   Future<String> fetchDataFromLs(String key) async {
     await getLsData();
     if (allValues.isNotEmpty) {
@@ -31,7 +36,7 @@ class SecureLs {
 
   isUserLoggedIn(BuildContext context) async {
     await getLsData().then((value) {
-      if (value.isNotEmpty) {
+      if (value['token']!=null) {
         Navigator.of(context).pushReplacementNamed(MyHomePage.routeName);
       }
     });

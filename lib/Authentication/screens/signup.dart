@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttericon/entypo_icons.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:netshield/Authentication/screens/email_verification_screen.dart';
+import 'package:netshield/Secure/secure_storage.dart';
 import 'package:provider/provider.dart';
 
 class SignUp extends StatefulWidget {
@@ -34,6 +35,11 @@ class _SignUpState extends State<SignUp> {
         .signUpUser(userData)
         .then((value) {
       if (value == 'success') {
+        SecureLs secureLs = new SecureLs();
+        secureLs.writeInitialLs({
+          "first_name":enUserData['first_name'],
+          "last_name":enUserData['last_name']
+        });
         Navigator.of(context).pushReplacementNamed(
             EmailVerificationScreen.routeName,
             arguments: enUserData);

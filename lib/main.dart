@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     SecureLs secureLs = new SecureLs();
-  //  secureLs.isUserLoggedIn(context);
+    secureLs.isUserLoggedIn(context);
   }
 
   bool login = true;
