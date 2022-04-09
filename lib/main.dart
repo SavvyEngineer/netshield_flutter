@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:netshield/Authentication/screens/email_verification_screen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
+import 'package:netshield/colors.dart';
 import 'package:provider/provider.dart';
 
 import 'Authentication/screens/login.dart';
@@ -60,7 +61,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1C1C1C),
+      backgroundColor: Color(App_colors.screen_background_color),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

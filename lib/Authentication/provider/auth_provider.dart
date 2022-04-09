@@ -13,6 +13,47 @@ import 'package:provider/provider.dart';
 class AuthProvider with ChangeNotifier {
   SecureLs secureLs = new SecureLs();
 
+  Future<Map> refreshToken() async {
+    String refresh_token = '';
+    await secureLs.fetchDataFromLs('refresh_token').then((value) {
+      value = refresh_token;
+    });
+    var headers = {
+      'Authorization':
+          'Basic MDdhZDQ4ZmItY2U1OS00YjBhLWFkZGMtYzMyMmNlNzFlZWMwOjY2NzliNzg1NzA4NTU4MDdhYmNiMmQwNTg1YzY4NjM3NDQyOWI2MDFiNWYyYjUyMzY1NGIxMzkxOTlhYjZhMTM=',
+      'Content-Type': 'application/json'
+    };
+    var request = http.Request(
+        'POST',
+        Uri.parse(
+            'https://api.netshield.ir/public/index.php/authorization/token'));
+    request.body = json.encode(
+        {"grant_type": "refresh_token", "refresh_token": refresh_token});
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+    // print(await response.stream.bytesToString());
+
+    if (response.statusCode == 200) {
+      String raw_result = await response.stream.bytesToString();
+      print('refreshing token ::::$raw_result');
+      Map auth_data = json.decode(raw_result);
+      Map refined_data = {
+        'token': auth_data['access_token'],
+        'refresh_token': auth_data['refresh_token'],
+        'expires_in': auth_data['expires_in']
+      };
+      await secureLs.writeInitialLs(refined_data).then((value) async {
+        await secureLs.getLsData();
+        return refined_data;
+      });
+    } else {
+      print(response.reasonPhrase);
+      ///////////////////log out user
+    }
+    return {};
+  }
+
   Future<void> loginUser(
       BuildContext context, String userName, String password) async {
     print('userName=$userName----password=$password');
@@ -68,7 +109,6 @@ class AuthProvider with ChangeNotifier {
       "to": email,
       "from": "hello@netshield.ir"
     });
-    request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
@@ -112,6 +152,9 @@ class AuthProvider with ChangeNotifier {
 
   Future<Map> getAccountStatus(String user_email) async {
     print('Checking Status for $user_email');
+    var headers = {
+      'Content-Type': 'application/json',
+    };
     Map resp_user_status = {};
     var request = http.Request(
         'GET',
@@ -149,35 +192,53 @@ class AuthProvider with ChangeNotifier {
       print(raw_resp_data);
       userAccountData = json.decode(raw_resp_data);
       if (userAccountData['attributes'] == null) {
+        Map userData = {};
+        secureLs.getLsData().then((value) {
+          value = userData;
+        });
         await initial_config_server(
-            token, userAccountData['id'], userAccountData['name']);
+                token, userAccountData['id'], userAccountData['name'])
+            .then((value) async => await putAccountData(userData, token));
       } else {
         await secureLs.writeSingleKeyLs(
             'ovpn-url', userAccountData['attributes']['ovpn-url']);
         // print(userAccountData['attributes']['ovpn-url'].toString());
       }
+    } else if (response.statusCode == 401) {
+      await refreshToken()
+          .then((value) async => await getAccountData(value['token']));
     } else {
       print(response.reasonPhrase);
     }
   }
 
-  Future<String> getServerConfig(String id) async {
+  Future<String> getServerConfig(String id, String token) async {
     print('Getting server config for id $id');
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
     var request = http.Request('GET',
         Uri.parse('https://api.netshield.ir/public/app/backed/conf/get/$id'));
 
+    request.headers.addAll(headers);
+
     http.StreamedResponse response = await request.send();
+    print('Getting server config status code ${response.statusCode}');
 
     if (response.statusCode == 200) {
       String config = await response.stream.bytesToString();
       print(config);
-      await secureLs.writeSingleKeyLs(
-            'ovpn-config', config);
+      await secureLs.writeSingleKeyLs('ovpn-config', config);
       return config;
+    } else if (response.statusCode == 401) {
+      refreshToken()
+          .then((value) async => await getServerConfig(id, value['token']));
     } else {
       print(response.reasonPhrase);
       return response.reasonPhrase.toString();
     }
+    return '';
   }
 
   Future<void> initial_config_server(
@@ -195,6 +256,9 @@ class AuthProvider with ChangeNotifier {
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
       getAccountData(token);
+    } else if (response.statusCode == 401) {
+      refreshToken().then(
+          (value) => initial_config_server(value['token'], user_id, user_name));
     } else {
       print(response.reasonPhrase);
     }
@@ -237,6 +301,9 @@ class AuthProvider with ChangeNotifier {
 
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
+    } else if (response.statusCode == 401) {
+      refreshToken().then(
+          (value) async => await putAccountData(userData, value['token']));
     } else {
       print(response.reasonPhrase);
     }

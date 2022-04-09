@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:netshield/Secure/secure_storage.dart';
+import 'package:netshield/colors.dart';
 import 'package:netshield/theme.dart';
 import 'package:netshield/widgets/colorized_text.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
@@ -61,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
           .getAccountData(userData['token']);
     } else {
       await Provider.of<AuthProvider>(context, listen: false)
-          .getServerConfig(userData['ovpn-url'])
+          .getServerConfig(userData['ovpn-url'],userData['token'])
           .then((value) {
         if (userData['ovpn-config'] == null) {
           userData['ovpn-config'] = value;
@@ -176,10 +177,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Color(App_colors.screen_background_color),
         brightness: Brightness.light);
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(App_colors.screen_background_color),
         appBar: appBar,
         body: FutureBuilder(
             future: _open_vpn_initilze_future,
@@ -263,6 +264,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                       style: TextStyle(
                                           fontFamily: 'Ubuntu',
                                           fontSize: 25,
+                                          height: 1,
+                                          color: Color(App_colors.text_color),
                                           fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -272,7 +275,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                         : 'you are going to see ads because your not connected',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                        fontFamily: 'Ubuntu', fontSize: 18),
+                                      fontFamily: 'Ubuntu',
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 ],
                               ),
@@ -294,7 +300,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: _buildBottomDrawerBody(context),
       headerHeight: _headerHeight,
       drawerHeight: _bodyHeight,
-      color: Colors.lightBlue,
+      color: Color(App_colors.text_color),
       controller: _controller,
     );
   }
