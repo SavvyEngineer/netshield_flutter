@@ -48,6 +48,9 @@ class AuthProvider with ChangeNotifier {
         return refined_data;
       });
     } else {
+      String raw_result = await response.stream.bytesToString();
+      print('Refreshing-token-failed by error code ${response.statusCode}');
+      print(raw_result);
       print(response.reasonPhrase);
       ///////////////////log out user
     }
@@ -197,7 +200,7 @@ class AuthProvider with ChangeNotifier {
           value = userData;
         });
         await initial_config_server(
-                token, userAccountData['id'], userAccountData['name'])
+                token, userAccountData['id'].toString(), userAccountData['name'])
             .then((value) async => await putAccountData(userData, token));
       } else {
         await secureLs.writeSingleKeyLs(

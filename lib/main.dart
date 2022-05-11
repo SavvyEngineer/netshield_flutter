@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
+import 'package:netshield/Authentication/provider/status_provider.dart';
 import 'package:netshield/Authentication/screens/email_verification_screen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
 import 'package:netshield/colors.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: AuthProvider()),
+        ChangeNotifierProvider.value(value: StatusProvider())
       ],
       child: MaterialApp(
         title: 'Net Shield',

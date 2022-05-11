@@ -21,11 +21,11 @@ final colorizeColors = [
 // Color(0xff008E98),
 // Color(0xff008F7A),
 
-Color(0xff4FAF44),
+// Color(0xff4FAF44),
 Color(0xffF6EB14),
 Color(0xffFF9526),
-Color(0xffEF4423),
-Color(0xff2A3492),
+// Color(0xffEF4423),
+// Color(0xff2A3492),
 ];
 
 final colorizeTextStyle = TextStyle(
@@ -47,7 +47,7 @@ final colorizeTextStyle = TextStyle(
             textStyle: colorizeTextStyle,
             colors: colorizeColors,
             textAlign: TextAlign.center,
-            speed: Duration(milliseconds: 200),
+            speed: Duration(milliseconds: 1200),
           ),
         ],
         repeatForever: true,

@@ -5,7 +5,10 @@ import 'package:bottom_drawer/bottom_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:glass_kit/glass_kit.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
+import 'package:netshield/Authentication/provider/status_provider.dart';
+import 'package:netshield/Authentication/screens/pieChartScreen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
 import 'package:netshield/colors.dart';
 import 'package:netshield/theme.dart';
@@ -30,6 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late bool swBtnState = false;
   String serverCert = '';
   late Future _open_vpn_initilze_future;
+  late Future _user_status_future;
   Map userData = {};
   bool _is_init = true;
 
@@ -62,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
           .getAccountData(userData['token']);
     } else {
       await Provider.of<AuthProvider>(context, listen: false)
-          .getServerConfig(userData['ovpn-url'],userData['token'])
+          .getServerConfig(userData['ovpn-url'], userData['token'])
           .then((value) {
         if (userData['ovpn-config'] == null) {
           userData['ovpn-config'] = value;
@@ -88,6 +92,16 @@ class _MyHomePageState extends State<MyHomePage> {
         ///Example 'Laskarmedia VPN'
         );
     //print(config);
+    _user_status_future = fetch_status_data();
+    new Timer.periodic(Duration(seconds: 5), (Timer t) {
+      fetch_status_data();
+    });
+  }
+
+  Future fetch_status_data() async {
+    return await Provider.of<StatusProvider>(context, listen: false)
+        .getUserStatusCounter(userData['token']);
+    
   }
 
   dynamic _onVpnStatusChanged(VpnStatus? vpnStatus) {
@@ -106,6 +120,34 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       // print('netshield:${status.toString()}');
     });
+  }
+
+  static Future<String> getLocalIpAddress() async {
+    final interfaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4, includeLinkLocal: true);
+
+    try {
+      // Try VPN connection first
+      NetworkInterface vpnInterface =
+          interfaces.firstWhere((element) => element.name == "tun0");
+      return vpnInterface.addresses.first.address;
+    } on StateError {
+      // Try wlan connection next
+      try {
+        NetworkInterface interface =
+            interfaces.firstWhere((element) => element.name == "wlan0");
+        return interface.addresses.first.address;
+      } catch (ex) {
+        // Try any other connection next
+        try {
+          NetworkInterface interface = interfaces.firstWhere((element) =>
+              !(element.name == "tun0" || element.name == "wlan0"));
+          return interface.addresses.first.address;
+        } catch (ex) {
+          return '';
+        }
+      }
+    }
   }
 
   _startVpn() async {
@@ -282,16 +324,100 @@ class _MyHomePageState extends State<MyHomePage> {
                                   )
                                 ],
                               ),
-                            )
+                            ),
+                            FutureBuilder(
+                                future: _user_status_future,
+                                builder: (context, dataSnapShot) {
+                                  if (dataSnapShot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  } else {
+                                    if (dataSnapShot.error != null) {
+                                      return Center(
+                                        child: Text(
+                                            'An error occured error=${dataSnapShot.error.toString()}'),
+                                      );
+                                    } else {
+                                      return _StatusBoxWidget(
+                                          context, dataSnapShot);
+                                    }
+                                  }
+                                })
                           ],
                         ),
                       ),
-                      _buildBottomDrawer(context),
+                      //  _buildBottomDrawer(context),
                     ],
                   );
                 }
               }
             }));
+  }
+
+  Widget _StatusBoxWidget(BuildContext context, AsyncSnapshot dataSnapShot) {
+    return Padding(
+      padding: const EdgeInsets.all(30.0),
+      child: SizedBox(
+        width: double.maxFinite,
+        height: 230,
+        child: Card(
+          color: Colors.white60,
+          child: Column(
+            children: [
+              Text('Status Box'),
+              Divider(),
+              SizedBox(
+                height: 100,
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Expanded(
+                    flex: 1,
+                    child: Card(
+                      elevation: 15,
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Blocked Ads"),
+                            Text(dataSnapShot.data["blockedStatus"]["totalResults"].toString())
+                          ]),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Card(
+                      elevation: 15,
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Cached dns"),
+                            Text(dataSnapShot.data["dnsStatus"]["totalResults"].toString())
+                            ]),
+                    ),
+                  )
+                ]),
+              ),
+              Text("latest Blocked Domains"),
+              Divider(),
+              Container(
+                width: double.maxFinite,
+                height: 20,
+                child: ListView.builder(
+                  itemCount: 3,
+                  itemBuilder: (BuildContext context, int index) {
+                    return ListTile(
+                      leading: Icon(Icons.account_balance_wallet_rounded),
+                      title: Text("instagram.com"),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildBottomDrawer(BuildContext context) {

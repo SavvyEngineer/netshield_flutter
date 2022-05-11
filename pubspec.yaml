@@ -40,6 +40,9 @@ dependencies:
   flutter_secure_storage: ^5.0.2
   timer_button: ^2.0.0
   device_info_plus: ^3.2.2
+  glass_kit: ^2.0.1
+  fl_chart: ^0.50.1
+
 
 
 dev_dependencies:
