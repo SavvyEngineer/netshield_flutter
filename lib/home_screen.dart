@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bottom_drawer/bottom_drawer.dart';
@@ -6,13 +7,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:glass_kit/glass_kit.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:netshield/Authentication/provider/status_provider.dart';
 import 'package:netshield/Authentication/screens/pieChartScreen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
 import 'package:netshield/colors.dart';
+import 'package:netshield/split_tunneling/split_tunneling_h_screen.dart';
 import 'package:netshield/theme.dart';
 import 'package:netshield/widgets/colorized_text.dart';
+import 'package:netshield/widgets/colorized_text_counter.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:rolling_switch/rolling_switch.dart';
@@ -36,6 +41,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late Future _user_status_future;
   Map userData = {};
   bool _is_init = true;
+  late List<AppInfo> apps;
+  List<String> split_t_apps = [];
 
   @override
   void didChangeDependencies() {
@@ -54,6 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> loadAsset() async {
     SecureLs secureLs = new SecureLs();
+    apps = await InstalledApps.getInstalledApps(true, true);
     await secureLs.getLsData().then((value) {
       userData = value;
       userData.forEach((key, value) {
@@ -101,7 +109,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Future fetch_status_data() async {
     return await Provider.of<StatusProvider>(context, listen: false)
         .getUserStatusCounter(userData['token']);
-    
   }
 
   dynamic _onVpnStatusChanged(VpnStatus? vpnStatus) {
@@ -151,16 +158,25 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _startVpn() async {
-    if (serverCert == '') {
-      await loadAsset();
+    await loadAsset();
+    if (userData['split_app_list'] != null) {
+      List selected_apps = json.decode(userData['split_app_list']);
+      apps.forEach((element) {
+        if (!selected_apps.contains(element.packageName)) {
+          split_t_apps.add(element.packageName.toString());
+          print('splited selected app :: ${element.packageName}');
+        }
+      });
+      print('list of selected apps lenght:: ${split_t_apps.length}');
     }
-    print(serverCert);
+    // print(serverCert);
     openvpn.connect(serverCert, 'netshield',
-        bypassPackages: [], certIsRequired: true);
+        bypassPackages: split_t_apps, certIsRequired: true);
     Vibration.vibrate(duration: 150);
   }
 
   _stopVpn() {
+    split_t_apps = [];
     openvpn.disconnect();
     Vibration.vibrate(duration: 150);
   }
@@ -325,26 +341,64 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ],
                               ),
                             ),
-                            FutureBuilder(
-                                future: _user_status_future,
-                                builder: (context, dataSnapShot) {
-                                  if (dataSnapShot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  } else {
-                                    if (dataSnapShot.error != null) {
+                            // Spacer(),
+                            Container(
+                              height: 250,
+                              child: FutureBuilder(
+                                  future: _user_status_future,
+                                  builder: (context, dataSnapShot) {
+                                    if (dataSnapShot.connectionState ==
+                                        ConnectionState.waiting) {
                                       return Center(
-                                        child: Text(
-                                            'An error occured error=${dataSnapShot.error.toString()}'),
+                                        child: CircularProgressIndicator(),
                                       );
                                     } else {
-                                      return _StatusBoxWidget(
-                                          context, dataSnapShot);
+                                      if (dataSnapShot.error != null) {
+                                        return Center(
+                                          child: Text(
+                                              'An error occured error=${dataSnapShot.error.toString()}'),
+                                        );
+                                      } else {
+                                        return Center(
+                                          child: Column(
+                                            children: [
+                                              _StatusBoxWidget(
+                                                  context, dataSnapShot),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 30, right: 30),
+                                                child: GestureDetector(
+                                                  onTap: () => Navigator.of(
+                                                          context)
+                                                      .pushNamed(
+                                                          SplitTunnelingScreen
+                                                              .routeName),
+                                                  child: Card(
+                                                    color: Colors.white60,
+                                                    elevation: 15,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Icons
+                                                              .info_outline_rounded),
+                                                          Text(
+                                                              'For more information please touch')
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        );
+                                      }
                                     }
-                                  }
-                                })
+                                  }),
+                            )
                           ],
                         ),
                       ),
@@ -356,68 +410,194 @@ class _MyHomePageState extends State<MyHomePage> {
             }));
   }
 
+  // Widget _StatusBoxWidget(BuildContext context, AsyncSnapshot dataSnapShot) {
+  //   return Padding(
+  //       padding: const EdgeInsets.all(30.0),
+  //       child: SizedBox(
+  //         width: double.maxFinite,
+  //         height: 210,
+  //         child: Card(
+  //           clipBehavior: Clip.hardEdge,
+  //           color: Colors.white60,
+  //           child: Container(
+  //             height: 50,
+  //             width: 150,
+  //             decoration: BoxDecoration(
+  //               gradient: LinearGradient(
+  //                 colors: [
+  //                   Color.fromRGBO(246, 235, 20, 1),
+  //                   Color.fromRGBO(253, 213, 4, 1),
+  //                   Color.fromRGBO(255, 192, 10, 1),
+  //                   Color.fromRGBO(255, 170, 25, 1),
+  //                   Color.fromRGBO(255, 149, 38, 1)
+  //                 ],
+  //                 begin: Alignment.topLeft,
+  //                 end: Alignment.bottomRight,
+  //               ),
+  //             ),
+  //             child: Padding(
+  //               padding: const EdgeInsets.all(8.0),
+  //               child: Center(
+  //                 child: Column(
+  //                   children: [
+  //                     Text('Status Box'),
+  //                     Divider(),
+  //                     SizedBox(
+  //                       height: 100,
+  //                       child: Row(
+  //                           mainAxisAlignment: MainAxisAlignment.center,
+  //                           children: [
+  //                             Expanded(
+  //                               flex: 1,
+  //                               child: Card(
+  //                                 elevation: 15,
+  //                                 child: Column(
+  //                                     mainAxisAlignment:
+  //                                         MainAxisAlignment.center,
+  //                                     children: [
+  //                                       Text("Blocked Ads"),
+  //                                       Text(dataSnapShot.data["blockedStatus"]
+  //                                               ["totalResults"]
+  //                                           .toString())
+  //                                     ]),
+  //                               ),
+  //                             ),
+  //                             Expanded(
+  //                               flex: 1,
+  //                               child: Card(
+  //                                 child: Column(
+  //                                     mainAxisAlignment:
+  //                                         MainAxisAlignment.center,
+  //                                     children: [
+  //                                       Text("Cached dns"),
+  //                                       Text(dataSnapShot.data["dnsStatus"]
+  //                                               ["totalResults"]
+  //                                           .toString())
+  //                                     ]), //declare your widget here
+  //                                 elevation: 15,
+  //                               ),
+  //                             ),
+  //                           ]),
+  //                     ),
+  //                     Divider(),
+  //                     GestureDetector(
+  //                       onTap: () => Navigator.of(context)
+  //                           .pushNamed(SplitTunnelingScreen.routeName),
+  //                       child: Row(
+  //                         children: [
+  //                           Icon(Icons.info_outline_rounded),
+  //                           Text('For more information please touch')
+  //                         ],
+  //                       ),
+  //                     )
+  //                     // Text("latest Blocked Domains"),
+  //                     // Divider(),
+  //                     // Container(
+  //                     //   width: double.maxFinite,
+  //                     //   height: 20,
+  //                     //   child: ListView.builder(
+  //                     //     itemCount: 3,
+  //                     //     itemBuilder: (BuildContext context, int index) {
+  //                     //       return ListTile(
+  //                     //         leading: Icon(Icons.account_balance_wallet_rounded),
+  //                     //         title: Text("instagram.com"),
+  //                     //       );
+  //                     //     },
+  //                     //   ),
+  //                     // ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ));
+  // }
+
   Widget _StatusBoxWidget(BuildContext context, AsyncSnapshot dataSnapShot) {
     return Padding(
-      padding: const EdgeInsets.all(30.0),
-      child: SizedBox(
-        width: double.maxFinite,
-        height: 230,
-        child: Card(
-          color: Colors.white60,
-          child: Column(
-            children: [
-              Text('Status Box'),
-              Divider(),
-              SizedBox(
-                height: 100,
-                child:
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      elevation: 15,
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("Blocked Ads"),
-                            Text(dataSnapShot.data["blockedStatus"]["totalResults"].toString())
-                          ]),
-                    ),
+        padding: const EdgeInsets.all(30.0),
+        child: SizedBox(
+            width: double.maxFinite,
+            height: 100,
+            child: Card(
+              color: Color(App_colors.box_background_color),
+              elevation: 15,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ColorizedTextCounter(
+                                    "Blocked Ads",
+                                    TextStyle(
+                                      fontSize: 21,
+                                      //fontWeight: FontWeight.bold,
+                                      fontFamily: 'Ubuntu',
+                                    )),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ColorizedTextCounter(
+                                      "0",
+                                      TextStyle(
+                                        fontSize: 31,
+                                        //fontWeight: FontWeight.bold,
+                                        fontFamily: 'MrRobot',
+                                      )),
+                                ),
+                                SizedBox(
+                                  height: 3,
+                                  width: 50,
+                                  child: Container(color: Colors.amber),
+                                )
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ColorizedTextCounter(
+                                    "Cached dns",
+                                    TextStyle(
+                                      fontSize: 21,
+                                      //fontWeight: FontWeight.bold,
+                                      fontFamily: 'Ubuntu',
+                                    )),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ColorizedTextCounter(
+                                      "0",
+                                      TextStyle(
+                                        fontSize: 31,
+                                        //fontWeight: FontWeight.bold,
+                                        fontFamily: 'MrRobot',
+                                      )),
+                                ),
+                                SizedBox(
+                                  height: 3,
+                                  width: 50,
+                                  child: Container(color: Colors.amber),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 1,
-                    child: Card(
-                      elevation: 15,
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("Cached dns"),
-                            Text(dataSnapShot.data["dnsStatus"]["totalResults"].toString())
-                            ]),
-                    ),
-                  )
-                ]),
-              ),
-              Text("latest Blocked Domains"),
-              Divider(),
-              Container(
-                width: double.maxFinite,
-                height: 20,
-                child: ListView.builder(
-                  itemCount: 3,
-                  itemBuilder: (BuildContext context, int index) {
-                    return ListTile(
-                      leading: Icon(Icons.account_balance_wallet_rounded),
-                      title: Text("instagram.com"),
-                    );
-                  },
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+            )));
   }
 
   Widget _buildBottomDrawer(BuildContext context) {

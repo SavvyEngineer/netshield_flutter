@@ -21,7 +21,7 @@ class SecureLs {
     }
   }
 
-    Future<void> writeSingleKeyLs(String key,String value) async {
+  Future<void> writeSingleKeyLs(String key, String value) async {
     await getLsData();
     await storage.write(key: key.toString(), value: value.toString());
   }
@@ -36,9 +36,13 @@ class SecureLs {
 
   isUserLoggedIn(BuildContext context) async {
     await getLsData().then((value) {
-      if (value['token']!=null) {
+      if (value['token'] != null) {
         Navigator.of(context).pushReplacementNamed(MyHomePage.routeName);
       }
     });
+  }
+
+  remove_a_key(String key) async {
+    await storage.delete(key: key);
   }
 }
