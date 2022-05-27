@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:netshield/Authentication/screens/email_verification_screen.dart';
 import 'dart:convert';
@@ -15,9 +17,14 @@ class AuthProvider with ChangeNotifier {
 
   Future<Map> refreshToken() async {
     String refresh_token = '';
-    await secureLs.fetchDataFromLs('refresh_token').then((value) {
-      value = refresh_token;
+    await secureLs.getLsData().then((value) {
+      refresh_token = value['refresh_token'];
+      print('this is refresh token ${refresh_token}');
     });
+    // await secureLs.fetchDataFromLs('refresh_token').then((value) {
+    //   value = refresh_token;
+
+    // });
     var headers = {
       'Authorization':
           'Basic MDdhZDQ4ZmItY2U1OS00YjBhLWFkZGMtYzMyMmNlNzFlZWMwOjY2NzliNzg1NzA4NTU4MDdhYmNiMmQwNTg1YzY4NjM3NDQyOWI2MDFiNWYyYjUyMzY1NGIxMzkxOTlhYjZhMTM=',
@@ -199,8 +206,8 @@ class AuthProvider with ChangeNotifier {
         secureLs.getLsData().then((value) {
           value = userData;
         });
-        await initial_config_server(
-                token, userAccountData['id'].toString(), userAccountData['name'])
+        await initial_config_server(token, userAccountData['id'].toString(),
+                userAccountData['name'])
             .then((value) async => await putAccountData(userData, token));
       } else {
         await secureLs.writeSingleKeyLs(
@@ -235,8 +242,10 @@ class AuthProvider with ChangeNotifier {
       await secureLs.writeSingleKeyLs('ovpn-config', config);
       return config;
     } else if (response.statusCode == 401) {
-      refreshToken()
-          .then((value) async => await getServerConfig(id, value['token']));
+      refreshToken().then((value) async {
+        print(value.toString());
+        await getServerConfig(id, value['token']);
+      });
     } else {
       print(response.reasonPhrase);
       return response.reasonPhrase.toString();

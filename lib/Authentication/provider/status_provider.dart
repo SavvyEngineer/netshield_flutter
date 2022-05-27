@@ -7,7 +7,7 @@ import 'package:netshield/Secure/secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class StatusProvider with ChangeNotifier {
-  String localIpaddr = '';
+  String localIpaddr = '10.8.0.16';
 
   Future<Map> getUserStatusCounter(String token) async {
     if (localIpaddr == '') {
@@ -75,7 +75,6 @@ class StatusProvider with ChangeNotifier {
       //     'total blocked Ads Are :::: ${resp_data_map["totalResults"].toString()}');
 
       notifyListeners();
-
       return resp_data_map;
     } else {
       print(response.reasonPhrase);

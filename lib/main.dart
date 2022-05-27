@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:netshield/Authentication/provider/status_provider.dart';
 import 'package:netshield/Authentication/screens/email_verification_screen.dart';
+import 'package:netshield/Details/screens/details_h_screen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
 import 'package:netshield/colors.dart';
 import 'package:netshield/split_tunneling/split_tunneling_h_screen.dart';
@@ -39,7 +40,8 @@ class MyApp extends StatelessWidget {
         routes: {
           MyHomePage.routeName: (context) => MyHomePage(),
           EmailVerificationScreen.routeName:(context)=>EmailVerificationScreen(),
-          SplitTunnelingScreen.routeName:(context)=>SplitTunnelingScreen()
+          SplitTunnelingScreen.routeName:(context)=>SplitTunnelingScreen(),
+          DetailsHomeScreen.routeName:(context)=>DetailsHomeScreen()
         },
       ),
     );

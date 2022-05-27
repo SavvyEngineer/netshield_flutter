@@ -11,7 +11,8 @@ import 'package:installed_apps/app_info.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:netshield/Authentication/provider/auth_provider.dart';
 import 'package:netshield/Authentication/provider/status_provider.dart';
-import 'package:netshield/Authentication/screens/pieChartScreen.dart';
+import 'package:netshield/Details/screens/details_h_screen.dart';
+import 'package:netshield/Details/widgets/pieChartScreen.dart';
 import 'package:netshield/Secure/secure_storage.dart';
 import 'package:netshield/colors.dart';
 import 'package:netshield/split_tunneling/split_tunneling_h_screen.dart';
@@ -371,8 +372,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                   onTap: () => Navigator.of(
                                                           context)
                                                       .pushNamed(
-                                                          SplitTunnelingScreen
-                                                              .routeName),
+                                                          DetailsHomeScreen.routeName),
                                                   child: Card(
                                                     color: Colors.white60,
                                                     elevation: 15,
@@ -546,7 +546,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ColorizedTextCounter(
-                                      "0",
+                                      dataSnapShot.data["blockedStatus"]["totalResults"].toString(),
                                       TextStyle(
                                         fontSize: 31,
                                         //fontWeight: FontWeight.bold,
@@ -576,7 +576,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ColorizedTextCounter(
-                                      "0",
+                                      dataSnapShot.data["dnsStatus"]["totalResults"].toString(),
                                       TextStyle(
                                         fontSize: 31,
                                         //fontWeight: FontWeight.bold,

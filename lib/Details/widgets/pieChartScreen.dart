@@ -1,24 +1,53 @@
+import 'dart:collection';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:netshield/Authentication/screens/inidicator.dart';
 
-
 class PieChartSample2 extends StatefulWidget {
-  const PieChartSample2({Key? key}) : super(key: key);
+  final List rdata;
+  PieChartSample2({required this.rdata});
 
   @override
-  State<StatefulWidget> createState() => PieChart2State();
+  _PieChart2State createState() => _PieChart2State();
 }
 
-class PieChart2State extends State {
+class _PieChart2State extends State<PieChartSample2> {
   int touchedIndex = -1;
+
+  List refind_data = [];
+
+  @override
+  void initState() {
+    Map<String, dynamic> count = {};
+    widget.rdata.forEach((element) {
+      if (count.containsKey(element['domain'])) {
+        count[element['domain']] += 1;
+      } else {
+        count[element['domain']] = 0;
+      }
+    });
+    var sortedKeys = count.keys.toList(growable: false)
+      ..sort((k1, k2) => count[k2].compareTo(count[k1]));
+    LinkedHashMap sortedMap = new LinkedHashMap.fromIterable(sortedKeys,
+        key: (k) => k, value: (k) => count[k]);
+    print(sortedMap.toString());
+    int counter = 0;
+    sortedMap.forEach((key, value) {
+      if (counter < 4) {
+        refind_data.add({'domain':key,'count':value});
+        counter++;
+      }
+    });
+    print(refind_data.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 1.3,
       child: Card(
-        color: Colors.transparent,
+        color: Colors.white,
         child: Row(
           children: <Widget>[
             const SizedBox(
@@ -55,10 +84,10 @@ class PieChart2State extends State {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const <Widget>[
+              children:  <Widget>[
                 Indicator(
                   color: Color(0xff0293ee),
-                  text: 'First',
+                  text: refind_data[0]['domain'].toString(),
                   isSquare: true,
                 ),
                 SizedBox(
@@ -66,7 +95,7 @@ class PieChart2State extends State {
                 ),
                 Indicator(
                   color: Color(0xfff8b250),
-                  text: 'Second',
+                  text: refind_data[1]['domain'].toString(),
                   isSquare: true,
                 ),
                 SizedBox(
@@ -74,7 +103,7 @@ class PieChart2State extends State {
                 ),
                 Indicator(
                   color: Color(0xff845bef),
-                  text: 'Third',
+                  text: refind_data[2]['domain'].toString(),
                   isSquare: true,
                 ),
                 SizedBox(
@@ -82,7 +111,7 @@ class PieChart2State extends State {
                 ),
                 Indicator(
                   color: Color(0xff13d38e),
-                  text: 'Fourth',
+                  text: refind_data[3]['domain'].toString(),
                   isSquare: true,
                 ),
                 SizedBox(
@@ -108,8 +137,8 @@ class PieChart2State extends State {
         case 0:
           return PieChartSectionData(
             color: const Color(0xff0293ee),
-            value: 40,
-            title: '40%',
+            value: refind_data[0]['count'].toDouble(),
+            title: refind_data[0]['domain'],
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
@@ -119,8 +148,8 @@ class PieChart2State extends State {
         case 1:
           return PieChartSectionData(
             color: const Color(0xfff8b250),
-            value: 30,
-            title: '30%',
+            value: refind_data[1]['count'].toDouble(),
+            title: refind_data[1]['domain'],
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
@@ -130,8 +159,8 @@ class PieChart2State extends State {
         case 2:
           return PieChartSectionData(
             color: const Color(0xff845bef),
-            value: 15,
-            title: '15%',
+            value: refind_data[2]['count'].toDouble(),
+            title: refind_data[2]['domain'],
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
@@ -141,8 +170,8 @@ class PieChart2State extends State {
         case 3:
           return PieChartSectionData(
             color: const Color(0xff13d38e),
-            value: 15,
-            title: '15%',
+            value: refind_data[3]['count'].toDouble(),
+            title: refind_data[3]['domain'],
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
