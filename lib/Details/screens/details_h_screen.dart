@@ -2,11 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:netshield/Details/widgets/pieChartScreen.dart';
 import 'package:netshield/colors.dart';
+import 'package:netshield/split_tunneling/split_tunneling_h_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../../Authentication/provider/status_provider.dart';
 import '../../Secure/secure_storage.dart';
 import '../../widgets/colorized_text_counter.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 enum _Tab { one, two }
 
@@ -57,6 +59,15 @@ class _DetailsHomeScreenState extends State<DetailsHomeScreen> {
             ),
           ),
         ],
+        centerTitle: true,
+        title: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            'NetShield',
+            style: TextStyle(
+                fontSize: 21.0, fontFamily: 'MrRobot', color: Colors.amber),
+          ),
+        ),
         elevation: 0,
         backgroundColor: Color(App_colors.screen_background_color),
         brightness: Brightness.light);
@@ -80,147 +91,199 @@ class _DetailsHomeScreenState extends State<DetailsHomeScreen> {
                   Map r_data = dataSnapShot.data as Map;
                   List blocked_domains = r_data["blockedStatus"]["entry"];
                   List cached_dns = r_data["dnsStatus"]["entry"];
-                  PieChartSample2 pieChartSample2 = new PieChartSample2(rdata:blocked_domains);
-                  return Column(children: [
-                    Expanded(
-                      flex: 2,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  PieChartSample2 pieChartSample2 =
+                      new PieChartSample2(rdata: blocked_domains);
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(children: [
+                      Expanded(
+                        flex: 2,
+                        child: Card(
+                          elevation: 15,
+                          color: Color(App_colors.box_background_color),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                ColorizedTextCounter(
-                                    "Blocked Ads",
-                                    TextStyle(
-                                      fontSize: 21,
-                                      //fontWeight: FontWeight.bold,
-                                      fontFamily: 'Ubuntu',
-                                    )),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ColorizedTextCounter(
-                                      r_data["blockedStatus"]["totalResults"]
-                                          .toString(),
-                                      TextStyle(
-                                        fontSize: 31,
-                                        //fontWeight: FontWeight.bold,
-                                        fontFamily: 'MrRobot',
-                                      )),
+                                Expanded(
+                                  flex: 1,
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      ColorizedTextCounter(
+                                          "Blocked Ads",
+                                          TextStyle(
+                                            fontSize: 21,
+                                            //fontWeight: FontWeight.bold,
+                                            fontFamily: 'Ubuntu',
+                                          )),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ColorizedTextCounter(
+                                            r_data["blockedStatus"]
+                                                    ["totalResults"]
+                                                .toString(),
+                                            TextStyle(
+                                              fontSize: 31,
+                                              //fontWeight: FontWeight.bold,
+                                              fontFamily: 'MrRobot',
+                                            )),
+                                      ),
+                                      SizedBox(
+                                        height: 3,
+                                        width: 50,
+                                        child: Container(color: Colors.amber),
+                                      )
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(
-                                  height: 3,
-                                  width: 50,
-                                  child: Container(color: Colors.amber),
+                                Expanded(
+                                  flex: 1,
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      ColorizedTextCounter(
+                                          "Cached dns",
+                                          TextStyle(
+                                            fontSize: 21,
+                                            //fontWeight: FontWeight.bold,
+                                            fontFamily: 'Ubuntu',
+                                          )),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: ColorizedTextCounter(
+                                            r_data["dnsStatus"]["totalResults"]
+                                                .toString(),
+                                            TextStyle(
+                                              fontSize: 31,
+                                              //fontWeight: FontWeight.bold,
+                                              fontFamily: 'MrRobot',
+                                            )),
+                                      ),
+                                      SizedBox(
+                                        height: 3,
+                                        width: 50,
+                                        child: Container(color: Colors.amber),
+                                      )
+                                    ],
+                                  ),
                                 )
                               ],
                             ),
                           ),
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.of(context)
+                            .pushNamed(SplitTunnelingScreen.routeName),
+                        child: Card(
+                          color: Colors.white60,
+                          elevation: 15,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
                               children: [
-                                ColorizedTextCounter(
-                                    "Cached dns",
-                                    TextStyle(
-                                      fontSize: 21,
-                                      //fontWeight: FontWeight.bold,
-                                      fontFamily: 'Ubuntu',
-                                    )),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ColorizedTextCounter(
-                                      r_data["dnsStatus"]["totalResults"]
-                                          .toString(),
-                                      TextStyle(
-                                        fontSize: 31,
-                                        //fontWeight: FontWeight.bold,
-                                        fontFamily: 'MrRobot',
-                                      )),
-                                ),
-                                SizedBox(
-                                  height: 3,
-                                  width: 50,
-                                  child: Container(color: Colors.amber),
-                                )
+                                Icon(Icons.info_outline_rounded),
+                                Text('Touch here for Changing Shielding Apps ')
                               ],
                             ),
-                          )
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Card(
-                        child: Center(child: pieChartSample2),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Card(
-                          child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(height: 16),
-                          CupertinoSegmentedControl<_Tab>(
-                            selectedColor: Colors.black,
-                            borderColor: Colors.black,
-                            pressedColor: Colors.grey,
-                            children: {
-                              _Tab.one: Text('Blocked'),
-                              _Tab.two: Text('Cached'),
-                            },
-                            onValueChanged: (value) {
-                              setState(() {
-                                _selectedTab = value;
-                              });
-                            },
-                            groupValue: _selectedTab,
                           ),
-                          SizedBox(height: 8),
-                          Container(
-                            child: Builder(
-                              builder: (context) {
-                                switch (_selectedTab) {
-                                  case _Tab.one:
-                                    return Container(
-                                      height: 200,
-                                child: ListView.builder(
-                                  itemCount: blocked_domains.length,
-                                  itemBuilder: (BuildContext context, int index) {
-                                    return ListTile(
-                                      leading: Icon(Icons.image),
-                                      title:Text(blocked_domains[index]["domain"].toString()),
-                                      trailing: Text(blocked_domains[index]["timestamp"].toString()),
-                                    );
-                                  },
-                                ),
-                                    );
-                                  case _Tab.two:
-                                    return Container(
-                                      height: 200,
-                                      child: ListView.builder(
-                                  itemCount: blocked_domains.length,
-                                  itemBuilder: (BuildContext context, int index) {
-                                    return ListTile(
-                                      leading: Icon(Icons.image),
-                                      title:Text(cached_dns[index]["domain"].toString()),
-                                      trailing: Text(cached_dns[index]["timestamp"].toString()),
-                                    );
-                                  },
-                                ),
-                                    );
-                                }
+                        ),
+                      ),
+                      Expanded(
+                        flex: 4,
+                        child: Card(
+                          child: Center(
+                              child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: pieChartSample2,
+                          )),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: Card(
+                            child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SizedBox(height: 16),
+                            CupertinoSegmentedControl<_Tab>(
+                              selectedColor: Colors.black,
+                              borderColor: Colors.black,
+                              pressedColor: Colors.grey,
+                              children: {
+                                _Tab.one: Text('Blocked'),
+                                _Tab.two: Text('Cached'),
                               },
+                              onValueChanged: (value) {
+                                setState(() {
+                                  _selectedTab = value;
+                                });
+                              },
+                              groupValue: _selectedTab,
                             ),
-                          ),
-                        ],
-                      )),
-                    ),
-                  ]);
+                            SizedBox(height: 8),
+                            Container(
+                              child: Builder(
+                                builder: (context) {
+                                  switch (_selectedTab) {
+                                    case _Tab.one:
+                                      return Container(
+                                        height: 200,
+                                        child: ListView.builder(
+                                          itemCount: blocked_domains.length,
+                                          itemBuilder: (BuildContext context,
+                                              int index) {
+                                            return ListTile(
+                                              leading: Icon(Icons.image),
+                                              title: Text(blocked_domains[index]
+                                                      ["domain"]
+                                                  .toString()),
+                                              trailing: Text(timeago.format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          blocked_domains[index]
+                                                              ["timestamp"] * 1000))),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    case _Tab.two:
+                                      return Container(
+                                        height: 200,
+                                        child: ListView.builder(
+                                          itemCount: blocked_domains.length,
+                                          itemBuilder: (BuildContext context,
+                                              int index) {
+                                            return ListTile(
+                                              leading: Icon(Icons.image),
+                                              title: Text(cached_dns[index]
+                                                      ["domain"]
+                                                  .toString()),
+                                              trailing: Text(timeago.format(
+                                                  DateTime
+                                                      .fromMillisecondsSinceEpoch(
+                                                          blocked_domains[index]
+                                                              ["timestamp"] * 1000)))
+                                            );
+                                          },
+                                        ),
+                                      );
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        )),
+                      ),
+                    ]),
+                  );
                 }
               }
             }));

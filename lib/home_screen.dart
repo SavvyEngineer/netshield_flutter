@@ -360,41 +360,46 @@ class _MyHomePageState extends State<MyHomePage> {
                                               'An error occured error=${dataSnapShot.error.toString()}'),
                                         );
                                       } else {
-                                        return Center(
-                                          child: Column(
-                                            children: [
-                                              _StatusBoxWidget(
-                                                  context, dataSnapShot),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 30, right: 30),
-                                                child: GestureDetector(
-                                                  onTap: () => Navigator.of(
-                                                          context)
-                                                      .pushNamed(
-                                                          DetailsHomeScreen.routeName),
-                                                  child: Card(
-                                                    color: Colors.white60,
-                                                    elevation: 15,
-                                                    child: Padding(
+                                        return _vpnStage(stage) == 'Connected!'
+                                            ? Center(
+                                                child: Column(
+                                                  children: [
+                                                    _StatusBoxWidget(
+                                                        context, dataSnapShot),
+                                                    Padding(
                                                       padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(Icons
-                                                              .info_outline_rounded),
-                                                          Text(
-                                                              'For more information please touch')
-                                                        ],
+                                                          const EdgeInsets.only(
+                                                              left: 30,
+                                                              right: 30),
+                                                      child: GestureDetector(
+                                                        onTap: () => Navigator
+                                                                .of(context)
+                                                            .pushNamed(
+                                                                DetailsHomeScreen
+                                                                    .routeName),
+                                                        child: Card(
+                                                          color: Colors.white60,
+                                                          elevation: 15,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(Icons
+                                                                    .info_outline_rounded),
+                                                                Text(
+                                                                    'For more information please touch')
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ),
+                                                    )
+                                                  ],
                                                 ),
                                               )
-                                            ],
-                                          ),
-                                        );
+                                            : Container();
                                       }
                                     }
                                   }),
@@ -546,7 +551,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ColorizedTextCounter(
-                                      dataSnapShot.data["blockedStatus"]["totalResults"].toString(),
+                                      dataSnapShot.data["blockedStatus"]
+                                              ["totalResults"]
+                                          .toString(),
                                       TextStyle(
                                         fontSize: 31,
                                         //fontWeight: FontWeight.bold,
@@ -576,7 +583,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ColorizedTextCounter(
-                                      dataSnapShot.data["dnsStatus"]["totalResults"].toString(),
+                                      dataSnapShot.data["dnsStatus"]
+                                              ["totalResults"]
+                                          .toString(),
                                       TextStyle(
                                         fontSize: 31,
                                         //fontWeight: FontWeight.bold,

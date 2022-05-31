@@ -75,9 +75,28 @@ class _SplitTunnelingScreenState extends State<SplitTunnelingScreen> {
               child: Container(
                 width: double.maxFinite,
                 height: 100,
-                child: Center(
-                  child: Card(
-                    child: Center(child: Text('Your Applications')),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    decoration: BoxDecoration(border: Border.all(
+                      width: 2,
+                      color: Colors.orange.shade700
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(5.0)
+                    )
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Shield All of My Apps',style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white,fontSize: 21),),
+                          Switch(value: false, onChanged: (value){
+                            
+                          })
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

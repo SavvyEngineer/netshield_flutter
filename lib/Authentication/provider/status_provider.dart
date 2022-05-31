@@ -7,7 +7,7 @@ import 'package:netshield/Secure/secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class StatusProvider with ChangeNotifier {
-  String localIpaddr = '10.8.0.16';
+  String localIpaddr = '';
 
   Future<Map> getUserStatusCounter(String token) async {
     if (localIpaddr == '') {
@@ -45,6 +45,7 @@ class StatusProvider with ChangeNotifier {
             'https://api.netshield.ir/public/engine/query/data/blocked/get'));
     request.body = json.encode({"client": localIpaddr});
     request.headers.addAll(headers);
+    print('Device IP:::${localIpaddr}');
 
     http.StreamedResponse response = await request.send();
 

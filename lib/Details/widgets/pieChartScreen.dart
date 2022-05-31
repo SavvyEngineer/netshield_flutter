@@ -35,7 +35,7 @@ class _PieChart2State extends State<PieChartSample2> {
     int counter = 0;
     sortedMap.forEach((key, value) {
       if (counter < 4) {
-        refind_data.add({'domain':key,'count':value});
+        refind_data.add({'domain': key, 'count': value});
         counter++;
       }
     });
@@ -44,87 +44,98 @@ class _PieChart2State extends State<PieChartSample2> {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.3,
-      child: Card(
-        color: Colors.white,
-        child: Row(
-          children: <Widget>[
-            const SizedBox(
-              height: 18,
-            ),
-            Expanded(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: PieChart(
-                  PieChartData(
-                      pieTouchData: PieTouchData(touchCallback:
-                          (FlTouchEvent event, pieTouchResponse) {
-                        setState(() {
-                          if (!event.isInterestedForInteractions ||
-                              pieTouchResponse == null ||
-                              pieTouchResponse.touchedSection == null) {
-                            touchedIndex = -1;
-                            return;
-                          }
-                          touchedIndex = pieTouchResponse
-                              .touchedSection!.touchedSectionIndex;
-                        });
-                      }),
-                      borderData: FlBorderData(
-                        show: false,
-                      ),
-                      sectionsSpace: 0,
-                      centerSpaceRadius: 40,
-                      sections: showingSections()),
+    return Row(
+      children: <Widget>[
+        Expanded(
+          flex: 4,
+          child: PieChart(
+            PieChartData(
+                pieTouchData: PieTouchData(
+                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                  setState(() {
+                    if (!event.isInterestedForInteractions ||
+                        pieTouchResponse == null ||
+                        pieTouchResponse.touchedSection == null) {
+                      touchedIndex = -1;
+                      return;
+                    }
+                    touchedIndex =
+                        pieTouchResponse.touchedSection!.touchedSectionIndex;
+                  });
+                }),
+                borderData: FlBorderData(
+                  show: false,
                 ),
-              ),
-            ),
-            Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children:  <Widget>[
-                Indicator(
+                sectionsSpace: 0,
+                centerSpaceRadius: 40,
+                sections: showingSections()),
+          ),
+        ),
+        SizedBox(
+          width: 8,
+        ),
+        Expanded(
+          flex: 3,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Statistics of Blocked Domains:',style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16
+              ),),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Indicator(
                   color: Color(0xff0293ee),
                   text: refind_data[0]['domain'].toString(),
                   isSquare: true,
+                  size: 12,
                 ),
-                SizedBox(
-                  height: 4,
-                ),
-                Indicator(
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Indicator(
                   color: Color(0xfff8b250),
                   text: refind_data[1]['domain'].toString(),
                   isSquare: true,
+                  size: 12,
                 ),
-                SizedBox(
-                  height: 4,
-                ),
-                Indicator(
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Indicator(
                   color: Color(0xff845bef),
                   text: refind_data[2]['domain'].toString(),
                   isSquare: true,
+                  size: 12,
                 ),
-                SizedBox(
-                  height: 4,
-                ),
-                Indicator(
+              ),
+              SizedBox(
+                height: 4,
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Indicator(
                   color: Color(0xff13d38e),
                   text: refind_data[3]['domain'].toString(),
                   isSquare: true,
+                  size: 12,
                 ),
-                SizedBox(
-                  height: 18,
-                ),
-              ],
-            ),
-            const SizedBox(
-              width: 28,
-            ),
-          ],
+              ),
+              SizedBox(
+                height: 18,
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -138,7 +149,7 @@ class _PieChart2State extends State<PieChartSample2> {
           return PieChartSectionData(
             color: const Color(0xff0293ee),
             value: refind_data[0]['count'].toDouble(),
-            title: refind_data[0]['domain'],
+            title: refind_data[0]['count'].toString(),
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
@@ -149,7 +160,7 @@ class _PieChart2State extends State<PieChartSample2> {
           return PieChartSectionData(
             color: const Color(0xfff8b250),
             value: refind_data[1]['count'].toDouble(),
-            title: refind_data[1]['domain'],
+            title: refind_data[1]['count'].toString(),
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
@@ -160,7 +171,7 @@ class _PieChart2State extends State<PieChartSample2> {
           return PieChartSectionData(
             color: const Color(0xff845bef),
             value: refind_data[2]['count'].toDouble(),
-            title: refind_data[2]['domain'],
+            title: refind_data[2]['count'].toString(),
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
@@ -171,7 +182,7 @@ class _PieChart2State extends State<PieChartSample2> {
           return PieChartSectionData(
             color: const Color(0xff13d38e),
             value: refind_data[3]['count'].toDouble(),
-            title: refind_data[3]['domain'],
+            title: refind_data[3]['count'].toString(),
             radius: radius,
             titleStyle: TextStyle(
                 fontSize: fontSize,
